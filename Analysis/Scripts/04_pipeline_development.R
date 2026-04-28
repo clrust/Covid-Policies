@@ -5,10 +5,11 @@ library(tidyverse)
 
 setwd("~/Library/CloudStorage/Box-Box/Covid Policies/Analysis")
 
-mn <- read_csv("Testing/Results/03_burnham_test.csv")
+mn <- read_csv("Testing/Results/03_burnham_test_manual.csv")
 
 # dates filled in
 mn_complete <- mn %>%
+  group_by(State, Agency) %>%
   complete(Date = seq.Date(
     from = as.Date("2020-03-01"),
     to   = as.Date("2022-12-31"),
