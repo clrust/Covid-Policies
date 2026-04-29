@@ -6,7 +6,7 @@
 from transformers import pipeline
 import pandas as pd
 import os
-from scipy.special import softmax
+import numpy as np
 
 ### Global Constants; can be changed ###
 LABELS = ["economic relief", "reopening", "jobs", "housing", "vaccines",
@@ -20,6 +20,19 @@ OUTPUT_PATH = "Analysis/Testing/Results/06_burnham_all_states.csv"
 #####################################
 os.chdir(WORKING_DIRECTORY)
 data = pd.read_csv(INPUT_DATA)
+
+# defining normalization function
+def normalize(matrix, axis=-1):
+    """ Takes a numpy 2D array of topic probabilities and normalizes them
+    Args: 
+        matrix(numpy array)
+        axis(int): axis to normalize across, 1: rows; 0: columns
+
+    Returns:
+        2D array with rows/columns normalized
+
+    """
+    return matrix / np.sum(matrix, axis=axis, keepdims = True)
 
 # extracting text from data
 text = data.pop("Text").str.slice(0,CHARACTER_NUMBER)
@@ -49,11 +62,10 @@ df = pd.DataFrame(clean_output)
 
 # mask to identify the columns with probabilities
 prob_cols = df.columns.difference(['sequence'])
-# creating a copy to apply softmax to
+# creating a copy to normalize
 df2 = df.copy(deep=False) 
-# Applying softmax to each row
-df2[prob_cols] = softmax(df[prob_cols].values, axis=1)
-
+# Normalizing each row
+df2[prob_cols] = normalize(df[prob_cols].values, axis=1)
 # combining probabilities with the original data
 output =pd.concat([data, df2], axis=1)
 
