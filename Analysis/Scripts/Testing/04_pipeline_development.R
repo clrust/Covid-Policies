@@ -2,20 +2,73 @@
 # Date: 4/27/26
 
 library(tidyverse)
+library(janitor)
 
 setwd("~/Library/CloudStorage/Box-Box/Covid Policies/Analysis")
 
-mn <- read_csv("Testing/Results/03_burnham_test_manual.csv")
+data <- read_csv("Testing/Results/06_burnham_all_states_sample.csv")
 
 # dates filled in
-mn_complete <- mn %>%
-  group_by(State, Agency) %>%
+all_states_complete <- data %>%
+  group_by(State, Agency, Date) %>% # if there are multiple releases on one day, average them out
+  summarise(
+    across(where(is.numeric), ~ mean(.x, na.rm = TRUE)),
+    .groups = "drop"
+  ) %>%
+  group_by(State, Agency) %>% # creating rows for days with no observations
   complete(Date = seq.Date(
     from = as.Date("2020-03-01"),
     to   = as.Date("2022-12-31"),
     by   = "day"
   )) %>%
   arrange(Date) %>%
-  fill(everything(), .direction = "down")
+  fill(everything(), .direction = "down") %>%
+  drop_na() 
 
+# finding latest first press release date of any agency
+test <- all_states_complete %>% 
+  group_by(Agency, State) %>%
+  summarize(min = min(Date))
+
+last_first_release <- max(test$min)
+
+# filtering to first day we have releases from all agencies
+all_states_complete2 <- all_states_complete %>%
+  filter(Date >= last_first_release) %>%
+  clean_names() %>%
+  select(-x1) %>%
+  pivot_wider(names_from = agency,
+              values_from = where(is.numeric),
+              names_sep = "_")
+
+# huh...where am I getting NAs from.. Ohhhh I know.. it's the states we don't have all the data for
+# so don't have all egencies
+
+# some states don't have all of health, university, and governor's office. 
+# these are thus dropped when I filter out the NAs
+final_data <- all_states_complete2 %>%
+  ungroup() %>%
+  drop_na()
+
+# getting matrices to calculate Euclidean distance
+final_data_gov <- final_data %>%
+  select(ends_with("Governor")) %>%
+  as.matrix()
+
+final_data_health <- final_data %>%
+  select(ends_with("Health")) %>%
+  as.matrix()
+
+final_data_university <- final_data %>%
+  select(ends_with("University")) %>%
+  as.matrix()
+
+#Calculating Euclidean distances
+U_gov_dist = sqrt(rowSums((final_data_gov - final_data_university)^2))
+U_health_dist = sqrt(rowSums((final_data_health - final_data_university)^2))
+
+final_data$U_gov_dist <- U_gov_dist
+final_data$U_health_dist <- U_health_dist
+
+summary(lm(U_gov_dist ~ U_health_dist, data = final_data))
 
