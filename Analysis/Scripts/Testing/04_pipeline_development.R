@@ -6,7 +6,7 @@ library(janitor)
 
 setwd("~/Library/CloudStorage/Box-Box/Covid Policies/Analysis")
 
-data <- read_csv("Testing/Results/06_burnham_all_states_sample.csv")
+data <- read_csv("Testing/Results/06_burnham_all_states.csv")
 
 # dates filled in
 all_states_complete <- data %>%
@@ -30,7 +30,7 @@ test <- all_states_complete %>%
   group_by(Agency, State) %>%
   summarize(min = min(Date))
 
-last_first_release <- max(test$min)
+last_first_release <- max(test$min) # currently CA Health, january 1, 2020
 
 # filtering to first day we have releases from all agencies
 all_states_complete2 <- all_states_complete %>%
@@ -71,4 +71,35 @@ final_data$U_gov_dist <- U_gov_dist
 final_data$U_health_dist <- U_health_dist
 
 summary(lm(U_gov_dist ~ U_health_dist, data = final_data))
+
+
+run_state <- 
+
+ny <- final_data %>%
+  filter(state == "NY")
+
+tx <- final_data %>%
+  filter(state == "TX")
+ggplot(ny) +
+  geom_line(aes(x = date, y = U_health_dist), color = "red") +
+  geom_line(aes(x = date, y = U_gov_dist), color = "blue")
+
+a <- ggplot(ny) +
+  geom_line(aes(x = date, y = U_health_dist), color = "red") +
+  scale_y_continuous(limits = c(0, 1.5))
+
+b <- ggplot(ny) +
+  geom_line(aes(x = date, y = U_gov_dist), color = "blue")+
+  scale_y_continuous(limits = c(0, 1.5))
+
+
+c <- ggplot(tx) +
+  geom_line(aes(x = date, y = U_health_dist), color = "red") +
+  scale_y_continuous(limits = c(0, 1.5))
+
+d <- ggplot(tx) +
+  geom_line(aes(x = date, y = U_gov_dist), color = "blue")+
+  scale_y_continuous(limits = c(0, 1.5))
+
+
 
