@@ -41,11 +41,8 @@ all_states_complete2 <- all_states_complete %>%
               values_from = where(is.numeric),
               names_sep = "_")
 
-# huh...where am I getting NAs from.. Ohhhh I know.. it's the states we don't have all the data for
-# so don't have all egencies
-
 # some states don't have all of health, university, and governor's office. 
-# these are thus dropped when I filter out the NAs
+# these are dropped when I filter out the NAs
 final_data <- all_states_complete2 %>%
   ungroup() %>%
   drop_na()
@@ -73,33 +70,71 @@ final_data$U_health_dist <- U_health_dist
 summary(lm(U_gov_dist ~ U_health_dist, data = final_data))
 
 
-run_state <- 
+# function to run model for a certain state
+# args: 
+#   data (df): all state data, 
+#   state (chr): initials of state of interest, 
+#   formula (formula): formula regression model, v
+#   var1 (sym): name of first variable to plot on y axis (red), 
+#   var2 (sym): name of second variable to plot on y axis (blue)
+# 
+# returns named list with ggplot object and lm object
 
-ny <- final_data %>%
-  filter(state == "NY")
-
-tx <- final_data %>%
-  filter(state == "TX")
-ggplot(ny) +
-  geom_line(aes(x = date, y = U_health_dist), color = "red") +
-  geom_line(aes(x = date, y = U_gov_dist), color = "blue")
-
-a <- ggplot(ny) +
-  geom_line(aes(x = date, y = U_health_dist), color = "red") +
-  scale_y_continuous(limits = c(0, 1.5))
-
-b <- ggplot(ny) +
-  geom_line(aes(x = date, y = U_gov_dist), color = "blue")+
-  scale_y_continuous(limits = c(0, 1.5))
+run_state <- function(data, state_val, formula, var1, var2){
+  state_data <- data %>%
+    filter(state == state_val)
+  
+  model <- lm(formula, data = state_data)
+  plot <- ggplot(state_data) +
+    geom_line(aes(x = date, y = {{var1}}), color = "red") +
+    geom_line(aes(x = date, y = {{var2}}), color = "blue")
+  
+  return(list(
+    model = model,
+    plot = plot
+    ))
+}
 
 
-c <- ggplot(tx) +
-  geom_line(aes(x = date, y = U_health_dist), color = "red") +
-  scale_y_continuous(limits = c(0, 1.5))
+test <- run_state(final_data, "NY", U_gov_dist ~ U_health_dist, U_gov_dist, U_health_dist)
 
-d <- ggplot(tx) +
-  geom_line(aes(x = date, y = U_gov_dist), color = "blue")+
-  scale_y_continuous(limits = c(0, 1.5))
+
+
+
+
+
+
+
+# 
+#   
+# p <- test$plot  
+#   
+#   
+# ny <- final_data %>%
+#   filter(state == "NY")
+# 
+# tx <- final_data %>%
+#   filter(state == "TX")
+# ggplot(ny) +
+#   geom_line(aes(x = date, y = U_health_dist), color = "red") +
+#   geom_line(aes(x = date, y = U_gov_dist), color = "blue")
+# 
+# a <- ggplot(ny) +
+#   geom_line(aes(x = date, y = U_health_dist), color = "red") +
+#   scale_y_continuous(limits = c(0, 1.5))
+# 
+# b <- ggplot(ny) +
+#   geom_line(aes(x = date, y = U_gov_dist), color = "blue")+
+#   scale_y_continuous(limits = c(0, 1.5))
+# 
+# 
+# c <- ggplot(tx) +
+#   geom_line(aes(x = date, y = U_health_dist), color = "red") +
+#   scale_y_continuous(limits = c(0, 1.5))
+# 
+# d <- ggplot(tx) +
+#   geom_line(aes(x = date, y = U_gov_dist), color = "blue")+
+#   scale_y_continuous(limits = c(0, 1.5))
 
 
 
