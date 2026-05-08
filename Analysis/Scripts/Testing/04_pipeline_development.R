@@ -67,6 +67,11 @@ U_health_dist = sqrt(rowSums((final_data_health - final_data_university)^2))
 final_data$U_gov_dist <- U_gov_dist
 final_data$U_health_dist <- U_health_dist
 
+# writing cleaned data
+write_csv(final_data, "Testing/Results/04_pipeline_development.csv")
+
+
+
 summary(lm(U_gov_dist ~ U_health_dist, data = final_data))
 
 
@@ -113,13 +118,13 @@ test <- map(states,
 a <- test[[1]]$plot
 
 
-# 
-#   
-# p <- test$plot  
-#   
-#   
-# ny <- final_data %>%
-#   filter(state == "NY")
+
+# playing around with VAR
+ny <- final_data %>%
+  filter(state == "NY")
+
+
+
 # 
 # tx <- final_data %>%
 #   filter(state == "TX")
