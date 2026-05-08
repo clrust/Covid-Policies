@@ -86,8 +86,15 @@ run_state <- function(data, state_val, formula, var1, var2){
   
   model <- lm(formula, data = state_data)
   plot <- ggplot(state_data) +
-    geom_line(aes(x = date, y = {{var1}}), color = "red") +
-    geom_line(aes(x = date, y = {{var2}}), color = "blue")
+    geom_line(aes(x = date, y = {{var1}}, color = "government")) +
+    geom_line(aes(x = date, y = {{var2}}, color = "health")) +
+    labs(title = state_val, y = "distance") +
+    scale_color_manual(
+      values = c(
+        "health" = "red",
+        "government" = "blue"
+      )
+    )
   
   return(list(
     model = model,
@@ -95,14 +102,15 @@ run_state <- function(data, state_val, formula, var1, var2){
     ))
 }
 
+states <- (final_data %>% 
+  distinct(state))$state
 
-test <- run_state(final_data, "NY", U_gov_dist ~ U_health_dist, U_gov_dist, U_health_dist)
+test <- map(states, 
+            ~ run_state(final_data, .x, U_gov_dist ~ U_health_dist, 
+                        U_gov_dist, U_health_dist))
 
 
-
-
-
-
+a <- test[[1]]$plot
 
 
 # 
