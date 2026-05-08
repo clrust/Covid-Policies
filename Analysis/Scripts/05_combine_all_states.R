@@ -29,7 +29,7 @@ setwd(data_path)
 CA_Health.t <- read_csv("CA_Health.csv")
 
 CA_University.t <- read_csv("CA_University.csv")
-CA.t <- rbind(CA_Gov.t, CA_Health.t) %>%
+CA.t <- rbind(CA_Gov.t, CA_Health.t, CA_University.t) %>%
   mutate(Date = date(Date))
 
 # CO
