@@ -44,8 +44,10 @@ all_states_complete2 <- all_states_complete %>%
 # some states don't have all of health, university, and governor's office. 
 # these are dropped when I filter out the NAs
 final_data <- all_states_complete2 %>%
-  ungroup() %>%
-  drop_na()
+  ungroup() 
+
+# %>%
+#   drop_na()
 
 # getting matrices to calculate Euclidean distance
 final_data_gov <- final_data %>%
@@ -69,7 +71,6 @@ final_data$U_health_dist <- U_health_dist
 
 # writing cleaned data
 write_csv(final_data, "Testing/Results/04_pipeline_development.csv")
-
 
 
 summary(lm(U_gov_dist ~ U_health_dist, data = final_data))
