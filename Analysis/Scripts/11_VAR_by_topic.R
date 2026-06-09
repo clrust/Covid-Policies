@@ -60,7 +60,8 @@ models <- lapply(topics, function(topic) {
 names(models) <- topics
 
 
-summary(models$vaccines)
+summary(models$vaccines) #**
+# this is intuitive, ss positive coefficient for Health
 summary(models$housing)
 summary(models$other)
 summary(models$economic_relief)
@@ -70,8 +71,10 @@ summary(models$reopening)
 summary(models$jobs)
 summary(models$food)
 summary(models$research)
-summary(models$testing)
-summary(models$positive_cases)
+summary(models$testing) #*
+# ss negative coefficients for both Health and Governor which doesn't make sense
+summary(models$positive_cases) #**
+# ss negative coefficient for Health which doesn't make any sense here
 
 
 

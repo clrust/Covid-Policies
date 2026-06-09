@@ -69,6 +69,7 @@ summary(models$housing)
 summary(models$other)
 summary(models$economic_relief)
 summary(models$healthcare_infrastructure)  #*
+# ss positive governor, borderline ss positive health
 summary(models$healthcare_professionals)
 summary(models$reopening)
 summary(models$jobs)
@@ -76,3 +77,4 @@ summary(models$food)
 summary(models$research)
 summary(models$testing)
 summary(models$positive_cases) #**
+# ss negative health
