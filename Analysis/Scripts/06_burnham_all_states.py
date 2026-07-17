@@ -23,7 +23,8 @@ data = pd.read_csv(INPUT_DATA)
 
 # defining normalization function
 def normalize(matrix, axis=-1):
-    """ Takes a numpy 2D array of topic probabilities and normalizes them
+    """ Takes a numpy 2D array of topic probabilities and normalizes them. 
+    (This applies L1 not L2 normalization)
     Args: 
         matrix(numpy array)
         axis(int): axis to normalize across, 1: rows; 0: columns
