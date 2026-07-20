@@ -21,12 +21,15 @@ WORKING_DIRECTORY = Path(
 INPUT_PATH = WORKING_DIRECTORY / "Data/05_combine_all_states.csv"
 OUTPUT_PATH = (
     WORKING_DIRECTORY
-    / "Analysis/Testing/Results/qwen_embeddings_test.parquet"
+    / "Analysis/Testing/Results/qwen_embeddings.parquet"
 )
 MODEL_NAME = "Qwen/Qwen3-Embedding-0.6B"
 PROMPT = None
 
-data = pd.read_csv(INPUT_PATH)
+#testing with first 100 releases
+data = pd.read_csv(INPUT_PATH).head(100)
+
+print(data.head(5))
 
 # Keep a stable link to the row in the source CSV.
 data.insert(0, "source_row", data.index)
@@ -71,7 +74,7 @@ if too_long.any():
 # calculate embeddings
 embeddings = model.encode(
     texts,
-    batch_size=3,
+    batch_size=1, # can increase batch size to speed things up, but requires higher working memory
     show_progress_bar=True,
     normalize_embeddings=True,
     convert_to_numpy=True,
@@ -80,3 +83,18 @@ embeddings = model.encode(
 
 print("Embedding matrix shape:", embeddings.shape)
 print("Row norms:", np.linalg.norm(embeddings, axis=1))
+
+# Save one numeric column per embedding dimension for straightforward use in R.
+embedding_columns = [
+    f"embedding_{i:04d}" for i in range(1, embeddings.shape[1] + 1)
+]
+embedding_data = pd.DataFrame(embeddings, columns=embedding_columns)
+embedding_data.insert(0, "source_row", data["source_row"])
+embedding_data.insert(1, "Title", data["Title"])
+
+embedding_data.to_parquet(
+    OUTPUT_PATH,
+    engine="pyarrow",
+    compression="zstd",
+    index=False
+)
