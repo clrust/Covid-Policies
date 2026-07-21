@@ -88,6 +88,44 @@ ggplot(NY) +
   ) +
   labs(y = "Similarity Score", title = "New York")
 
+#------
+TX <- all_states_complete %>%
+  filter(State == "TX")
+
+ggplot(TX) +
+  geom_line(aes(x = Date, y = GU, color = "Governor → University")) +
+  geom_line(aes(x = Date, y = GH, color = "Governor → Health")) +
+  geom_line(aes(x = Date, y = HU, color = "Health → University")) +
+  scale_color_manual(
+    name = "Series",
+    values = c(
+      "Governor → University" = "red",
+      "Governor → Health" = "blue",
+      "Health → University" = "green"
+    )
+  ) +
+  labs(y = "Similarity Score", title = "Texas")
+#-----
+MA <- all_states_complete %>%
+  filter(State == "MA")
+
+ggplot(MA) +
+  geom_line(aes(x = Date, y = GU, color = "Governor → University")) +
+  geom_line(aes(x = Date, y = GH, color = "Governor → Health")) +
+  geom_line(aes(x = Date, y = HU, color = "Health → University")) +
+  scale_color_manual(
+    name = "Series",
+    values = c(
+      "Governor → University" = "red",
+      "Governor → Health" = "blue",
+      "Health → University" = "green"
+    )
+  ) +
+  labs(y = "Similarity Score", title = "MA")
+
+#---Regression
+lm(GU ~ HU -1, data = all_states_complete)
+
 
 
 
