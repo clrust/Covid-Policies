@@ -5,11 +5,14 @@
 # These embeddings are already normalized
 library(arrow)
 library(tidyverse)
+library(patchwork)
 
 # read in embeddings, df has dimensions: (number of press releases, number of embedding dimensions + 2)
 embeddings <- read_parquet("~/Library/CloudStorage/Box-Box/Covid Policies/Analysis/Testing/Results/qwen_embeddings.parquet")
 
-data <- read_csv("~/Library/CloudStorage/Box-Box/Covid Policies/Data/05_combine_all_states.csv")
+# read in data, add row number with 0 indexing
+data <- read_csv("~/Library/CloudStorage/Box-Box/Covid Policies/Data/05_combine_all_states.csv") %>%
+  mutate(source_row = row_number() - 1)
 
 # turns the 1024 embedding columns into one list column
 embeddings2 <- embeddings %>%
@@ -21,12 +24,10 @@ embeddings2 <- embeddings %>%
   dplyr::select(source_row, Title, embedding)
 
 # join the vector embeddings to the press release data
-data2 <- data %>% left_join(embeddings2) 
+data2 <- data %>% left_join(embeddings2, 
+                            join_by(Title == Title, source_row == source_row)) 
 
-data_test <- data2 %>%
-  slice(1:3)
-
-all_states_complete <- data_test %>%
+all_states_complete <- data2 %>%
   group_by(State, Agency, Date) %>% # if there are multiple releases on one day, take the vector mean
   summarise(
     embedding = list(matrix(unlist(embedding), ncol = 1024, byrow = TRUE) |>
@@ -42,23 +43,53 @@ all_states_complete <- data_test %>%
   arrange(Date) %>%
   fill(everything(), .direction = "down") %>%
   drop_na() %>% 
+  mutate(agency_min_date = min(Date)) %>% # state-agency min
   ungroup() %>%
-  pivot_wider(names_from = Agency, values_from = embedding) %>%
+  group_by(State) %>%
+  mutate(state_max_min = max(agency_min_date)) %>% # state max-min
+  ungroup() %>%
+  filter(Date >= state_max_min) %>% # filter to state max-min
+  pivot_wider(
+    id_cols = c(State, Date),
+    names_from = Agency, 
+    values_from = embedding) %>%
+  drop_na() %>% # Florida has no University
   mutate(GU = map2_dbl(Governor, University, ~ as.numeric(.x %*% .y)),
          GH = map2_dbl(Governor, Health, ~ as.numeric(.x %*% .y)),
          HU = map2_dbl(Health, University, ~ as.numeric(.x %*% .y)))
 
+#---- Some plots
+gu <- ggplot(all_states_complete) +
+  geom_line(aes(y = GU, x = Date, color = State))
 
-toy_df <- all_states_complete %>%
-  slice(1:6)
+gh <- ggplot(all_states_complete) +
+  geom_line(aes(y = GH, x = Date, color = State))
 
-Agency <- rep(c("Governor", "University", "Health"), 2)
-Date = c(ymd("2020-03-25", "2020-03-25", "2020-03-25", "2020-03-26", "2020-03-26", "2020-03-26"))
-toy_df$Date <- Date
-toy_df$Agency <- Agency
+hu <- ggplot(all_states_complete) +
+  geom_line(aes(y = HU, x = Date, color = State))
 
-toy_df2 <- toy_df %>% 
-  pivot_wider(names_from = Agency, values_from = embedding) %>%
-  mutate(GU = map2_dbl(Governor, University, ~ as.numeric(.x %*% .y)),
-         GH = map2_dbl(Governor, Health, ~ as.numeric(.x %*% .y)),
-         HU = map2_dbl(Health, University, ~ as.numeric(.x %*% .y)))
+gu/gh/hu
+
+#----NY
+NY <- all_states_complete %>%
+  filter(State == "NY")
+
+ggplot(NY) +
+  geom_line(aes(x = Date, y = GU, color = "Governor → University")) +
+  geom_line(aes(x = Date, y = GH, color = "Governor → Health")) +
+  geom_line(aes(x = Date, y = HU, color = "Health → University")) +
+  scale_color_manual(
+    name = "Series",
+    values = c(
+      "Governor → University" = "red",
+      "Governor → Health" = "blue",
+      "Health → University" = "green"
+    )
+  ) +
+  labs(y = "Similarity Score", title = "New York")
+
+
+
+
+
+
