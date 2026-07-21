@@ -4,9 +4,10 @@
 # Reads in parquet with each press release embedded, forward fills NA, calculates cosine similarity
 # These embeddings are already normalized
 library(arrow)
+library(tidyverse)
 
 # read in embeddings, df has dimensions: (number of press releases, number of embedding dimensions + 2)
-embeddings <- read_parquet("~/covidpolicies/Analysis/CosSim/embeddings.parquet")
+embeddings <- read_parquet("~/Library/CloudStorage/Box-Box/Covid Policies/Analysis/Testing/Results/qwen_embeddings.parquet")
 
 data <- read_csv("~/Library/CloudStorage/Box-Box/Covid Policies/Data/05_combine_all_states.csv")
 
@@ -41,6 +42,23 @@ all_states_complete <- data_test %>%
   arrange(Date) %>%
   fill(everything(), .direction = "down") %>%
   drop_na() %>% 
-  ungroup()
+  ungroup() %>%
+  pivot_wider(names_from = Agency, values_from = embedding) %>%
+  mutate(GU = map2_dbl(Governor, University, ~ as.numeric(.x %*% .y)),
+         GH = map2_dbl(Governor, Health, ~ as.numeric(.x %*% .y)),
+         HU = map2_dbl(Health, University, ~ as.numeric(.x %*% .y)))
 
 
+toy_df <- all_states_complete %>%
+  slice(1:6)
+
+Agency <- rep(c("Governor", "University", "Health"), 2)
+Date = c(ymd("2020-03-25", "2020-03-25", "2020-03-25", "2020-03-26", "2020-03-26", "2020-03-26"))
+toy_df$Date <- Date
+toy_df$Agency <- Agency
+
+toy_df2 <- toy_df %>% 
+  pivot_wider(names_from = Agency, values_from = embedding) %>%
+  mutate(GU = map2_dbl(Governor, University, ~ as.numeric(.x %*% .y)),
+         GH = map2_dbl(Governor, Health, ~ as.numeric(.x %*% .y)),
+         HU = map2_dbl(Health, University, ~ as.numeric(.x %*% .y)))

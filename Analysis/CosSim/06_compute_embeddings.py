@@ -27,7 +27,7 @@ MODEL_NAME = "Qwen/Qwen3-Embedding-0.6B"
 PROMPT = None
 
 #testing with first 100 releases
-data = pd.read_csv(INPUT_PATH).head(100)
+data = pd.read_csv(INPUT_PATH)
 
 print(data.head(5))
 
