@@ -204,6 +204,37 @@ cython_debug/
 *.feather
 *.arrow
 
+# Saved web pages / scraper output
+*.htm
+*.html
+*.mht
+*.mhtml
+*.xhtml
+
+# Generated documents and plots
+*.pdf
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.svg
+*.tif
+*.tiff
+*.bmp
+*.webp
+*.eps
+
+# Local R session output
+.Rhistory
+.RData
+.Ruserdata
+
+# Scraped source data (including files without extensions)
+Rescraping/RawData/
+
+# Operating-system metadata
+.DS_Store
+
 # Cursor
 #  Cursor is an AI-powered code editor. `.cursorignore` specifies files/directories to
 #  exclude from AI features like autocomplete and code analysis. Recommended for sensitive data
