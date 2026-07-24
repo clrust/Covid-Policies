@@ -27,6 +27,16 @@ embeddings2 <- embeddings %>%
 data2 <- data %>% left_join(embeddings2, 
                             join_by(Title == Title, source_row == source_row)) 
 
+# Safe dot product function that handles null embeddings created by lag
+
+safe_dot <- function(x, y) {
+  if (is.null(x) || is.null(y) || length(x) == 0 || length(y) == 0) {
+    return(NA_real_)
+  }
+  
+  sum(x * y)
+}
+
 all_states_complete <- data2 %>%
   group_by(State, Agency, Date) %>% # if there are multiple releases on one day, take the vector mean
   summarise(
@@ -54,10 +64,27 @@ all_states_complete <- data2 %>%
     names_from = Agency, 
     values_from = embedding) %>%
   drop_na() %>% # Florida has no University
-  mutate(GU = map2_dbl(Governor, University, ~ as.numeric(.x %*% .y)),
-         GH = map2_dbl(Governor, Health, ~ as.numeric(.x %*% .y)),
-         HU = map2_dbl(Health, University, ~ as.numeric(.x %*% .y)))
+  # grouping by state so that lag gets the previous days embeddings, if they exist, within the state
+  group_by(State) %>% 
+  arrange(Date, .by_group = TRUE) %>%
+  # adding 1 day lag for comparison between agencies across days
+  mutate(lag1_Governor = lag(Governor),
+         lag1_Health = lag(Health),
+         lag1_University = lag(University)) %>%
+  ungroup() %>%
+  # calculating cosine similarity scores
+  mutate(GU = map2_dbl(Governor, University, safe_dot),
+         GH = map2_dbl(Governor, Health, safe_dot),
+         HU = map2_dbl(Health, University, safe_dot)) %>%
+  # cosine similarity scores for lagged agencies
+  mutate(G_Ulag1 = map2_dbl(Governor, lag1_University, safe_dot),
+         G_Hlag1 = map2_dbl(Governor, lag1_Health, safe_dot),
+         H_Ulag1 = map2_dbl(Health, lag1_University, safe_dot),
+         Glag1_U = map2_dbl(lag1_Governor, University, safe_dot),
+         Glag1_H = map2_dbl(lag1_Governor, Health, safe_dot),
+         Hlag1_U = map2_dbl(lag1_Health, University, safe_dot))
 
+write_csv(all_states_complete, "~/Library/CloudStorage/Box-Box/Covid Policies/Analysis/Testing/Results/07_cossim_data.csv")
 #---- Some plots
 gu <- ggplot(all_states_complete) +
   geom_line(aes(y = GU, x = Date, color = State))
