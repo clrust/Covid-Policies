@@ -45,7 +45,7 @@ make_base_plot <- function(state) {
       y = Inf,
       label = "First Vax Given",
       hjust = -0.1,   # puts label slightly right of line
-      vjust = 2.5,    # moves label down from top
+      vjust = 3,    # moves label down from top
       color = "black",
       size = 2.5
     ) +
