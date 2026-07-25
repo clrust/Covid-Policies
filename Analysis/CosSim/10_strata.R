@@ -1,6 +1,6 @@
 # Created by: CR
 # Date: 7/24/26
-# Scatterplots comparing influence
+# States categorized into strata based on party control of executive/legislative
 
 library(tidyverse)
 library(patchwork)
