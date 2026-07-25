@@ -84,74 +84,11 @@ all_states_complete <- data2 %>%
          Glag1_H = map2_dbl(lag1_Governor, Health, safe_dot),
          Hlag1_U = map2_dbl(lag1_Health, University, safe_dot))
 
-write_csv(all_states_complete, "~/Library/CloudStorage/Box-Box/Covid Policies/Analysis/Testing/Results/07_cossim_data.csv")
-#---- Some plots
-gu <- ggplot(all_states_complete) +
-  geom_line(aes(y = GU, x = Date, color = State))
+cossim_data <- all_states_complete %>%
+  select(-c(Governor, Health, University, starts_with("lag1")))
 
-gh <- ggplot(all_states_complete) +
-  geom_line(aes(y = GH, x = Date, color = State))
+write_csv(cossim_data, "~/Library/CloudStorage/Box-Box/Covid Policies/Analysis/Testing/Results/07_cossim_data.csv")
 
-hu <- ggplot(all_states_complete) +
-  geom_line(aes(y = HU, x = Date, color = State))
-
-gu/gh/hu
-
-#----NY
-NY <- all_states_complete %>%
-  filter(State == "NY")
-
-ggplot(NY) +
-  geom_line(aes(x = Date, y = GU, color = "Governor → University")) +
-  geom_line(aes(x = Date, y = GH, color = "Governor → Health")) +
-  geom_line(aes(x = Date, y = HU, color = "Health → University")) +
-  scale_color_manual(
-    name = "Series",
-    values = c(
-      "Governor → University" = "red",
-      "Governor → Health" = "blue",
-      "Health → University" = "green"
-    )
-  ) +
-  labs(y = "Similarity Score", title = "New York")
-
-#------
-TX <- all_states_complete %>%
-  filter(State == "TX")
-
-ggplot(TX) +
-  geom_line(aes(x = Date, y = GU, color = "Governor → University")) +
-  geom_line(aes(x = Date, y = GH, color = "Governor → Health")) +
-  geom_line(aes(x = Date, y = HU, color = "Health → University")) +
-  scale_color_manual(
-    name = "Series",
-    values = c(
-      "Governor → University" = "red",
-      "Governor → Health" = "blue",
-      "Health → University" = "green"
-    )
-  ) +
-  labs(y = "Similarity Score", title = "Texas")
-#-----
-MA <- all_states_complete %>%
-  filter(State == "MA")
-
-ggplot(MA) +
-  geom_line(aes(x = Date, y = GU, color = "Governor → University")) +
-  geom_line(aes(x = Date, y = GH, color = "Governor → Health")) +
-  geom_line(aes(x = Date, y = HU, color = "Health → University")) +
-  scale_color_manual(
-    name = "Series",
-    values = c(
-      "Governor → University" = "red",
-      "Governor → Health" = "blue",
-      "Health → University" = "green"
-    )
-  ) +
-  labs(y = "Similarity Score", title = "MA")
-
-#---Regression
-lm(GU ~ HU -1, data = all_states_complete)
 
 
 
