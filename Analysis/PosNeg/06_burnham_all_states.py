@@ -37,7 +37,7 @@ def normalize(matrix, axis=-1):
 
 # extracting text from data
 text = data.pop("Text").str.slice(0,CHARACTER_NUMBER)
-lst = text.to_list()[1:5]
+lst = text.to_list()
 
 ent_template = "This text is about {}"
 dis_template = "This text is not about {}"
