@@ -8,11 +8,14 @@ library(tidyverse)
 library(patchwork)
 
 # read in embeddings, df has dimensions: (number of press releases, number of embedding dimensions + 2)
-embeddings <- read_parquet("~/Library/CloudStorage/Box-Box/Covid Policies/Analysis/Testing/Results/qwen_embeddings.parquet")
+embeddings <- read_parquet("~/Library/CloudStorage/Box-Box/Covid Policies/Analysis/Testing/Results/qwen_embeddings.parquet") %>%
+  filter(str_detect(Title, "covid|COVID|case"))
+
 
 # read in data, add row number with 0 indexing
 data <- read_csv("~/Library/CloudStorage/Box-Box/Covid Policies/Data/05_combine_all_states.csv") %>%
-  mutate(source_row = row_number() - 1)
+  mutate(source_row = row_number() - 1) %>%
+  filter(str_detect(Title, "covid|COVID|case"))
 
 # turns the 1024 embedding columns into one list column
 embeddings2 <- embeddings %>%
