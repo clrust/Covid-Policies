@@ -6,7 +6,7 @@ library(janitor)
 
 setwd("~/Library/CloudStorage/Box-Box/Covid Policies/Analysis")
 
-EPSILON <- 0.1
+EPSILON <- 0.001
 
 data <- read_csv("Testing/Results/06_burnham_posneg_all_states.csv") %>%
   clean_names() %>%
@@ -31,6 +31,19 @@ data_proj = tibble((data_ent + epsilon_df / 2) / (data_ent + data_dis + epsilon_
 complete_data <- bind_cols(data_no_topics, data_proj) %>%
   mutate(row_max = do.call(pmax, select(., where(is.numeric))))
 
+#better diagnostic plot: for most common labels, what's the distribution
+
+complete_data %>% 
+  ggplot() +
+  geom_histogram(aes(x = reopening_ent))
+
+complete_data %>% 
+  ggplot() +
+  geom_histogram(aes(x = testing_ent))
+
+complete_data %>% 
+  ggplot() +
+  geom_histogram(aes(x = vaccines_ent))
 
 ggplot(complete_data) +
   geom_histogram(aes(x = row_max))

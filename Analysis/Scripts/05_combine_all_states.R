@@ -87,7 +87,7 @@ MN_University.t <- read_csv("MN_University.csv")
 MN.t <- rbind(MN_Gov.t, MN_Health.t, MN_University.t)
 
 # NC
-# NC Gov here
+# NC Gov here (not completely scraped because of wayback machine issues)
 NC_Health.t <- read_csv("NC_Health.csv")
 NC_University.t <- read_csv("NC_University.csv")
 NC.t <- rbind(NC_Health.t, NC_University.t)
@@ -131,6 +131,7 @@ VA.t <- rbind(VA_Gov.t,VA_Health.t, VA_University.t)
 
 # WI
 
+#wait so why do we not have Ohio here?
 All.t <- rbind(CA.t, CO.t, FL.t, GA.t, IL.t, MA.t, MI.t, MN.t, NC.t, NY.t, PA.t, TX.t, VA.t)
 All.t %>% write_csv("All.csv")
 
