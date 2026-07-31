@@ -43,9 +43,11 @@ setwd(rescraped_path)
 FL_Gov.t <- read_csv("FL_Gov.csv") 
 FL_Health.t <- read_csv("FL_Health_r2.csv") %>%
   select(-c(non_local_flag, Filename))
+setwd(data_path)
 
-# FL University here
-FL.t <- rbind(FL_Gov.t, FL_Health.t)
+FL_University.t <- read_csv("FL_University.csv") # FL University not rescraped
+
+FL.t <- rbind(FL_Gov.t, FL_Health.t, FL_University.t)
 
 # GA
 setwd(data_path)
@@ -97,10 +99,10 @@ setwd(rescraped_path)
 NY_Gov.t <- read_csv("NY_Gov.csv")
 NY_University.t <- read_csv("NY_University_r2.csv") %>%
   select(-File)
-setwd(data_path)
-NY_Health.t <- read_csv("NY_Health.csv") %>%
-  mutate(Date = lubridate::mdy(Date))
+NY_Health.t <- read_csv("NY_Health.csv") 
 NY.t <- rbind(NY_Gov.t, NY_Health.t, NY_University.t)
+
+setwd(data_path)
 
 # OH
 OH_Gov.t <- read_csv("OH_Gov.csv")

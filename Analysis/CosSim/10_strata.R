@@ -11,7 +11,7 @@ purple_state <- c("VA", "PA", "MN", "MI", "MA")
 red_state <- c("TX", "GA")
 blue_state <- c("CA", "CO", "IL", "NY")
 
-data <- read_csv("Testing/Results/07_cossim_data.csv") %>%
+data <- read_csv("Testing/Results/07_cossim_data_filtered.csv") %>%
   mutate(strata = case_when(
     State %in% purple_state ~ "purple",
     State %in% red_state ~ "red",

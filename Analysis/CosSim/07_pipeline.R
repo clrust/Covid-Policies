@@ -90,7 +90,7 @@ all_states_complete <- data2 %>%
 cossim_data <- all_states_complete %>%
   select(-c(Governor, Health, University, starts_with("lag1")))
 
-write_csv(cossim_data, "~/Library/CloudStorage/Box-Box/Covid Policies/Analysis/Testing/Results/07_cossim_data.csv")
+write_csv(cossim_data, "~/Library/CloudStorage/Box-Box/Covid Policies/Analysis/Testing/Results/07_cossim_data_filtered.csv")
 
 
 

@@ -144,5 +144,5 @@ final_data_merged <- final_data %>%
   select(c(Title, Text, State, Agency, date)) %>%
   rename(Date = date)
 
-write_csv(final_data_merged, "Data/NY_Health.csv")
+write_csv(final_data_merged, "~/Library/CloudStorage/Box-Box/Covid Policies/Rescraping/Data2/NY_Health.csv")
 

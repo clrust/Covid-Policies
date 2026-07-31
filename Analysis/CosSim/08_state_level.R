@@ -7,7 +7,7 @@ library(patchwork)
 
 setwd("~/Library/CloudStorage/Box-Box/Covid Policies/Analysis")
 
-cossim_data <- read_csv("Testing/Results/07_cossim_data.csv")
+cossim_data <- read_csv("Testing/Results/07_cossim_data_filtered.csv")
 
 make_base_plot <- function(state) {
   state_df <- cossim_data %>%
@@ -74,7 +74,8 @@ make_base_plot <- function(state) {
         "Health → University" = "green"
       )
     ) +
-    labs(y = "Similarity Score", title = state)
+    labs(y = "Similarity Score", title = state) +
+    scale_y_continuous(limits = c(0,1))
 }
 
 plot_directory <- "Testing/Results/State_Plots"
@@ -116,12 +117,13 @@ make_lag_plot <- function(state) {
     scale_color_manual(
       name = "Series",
       values = c(
-        "Lag Health → University" = "red",
-        "Lag Governor → University" = "blue",
-        "Lag Governor → Health" = "green"
+        "Lag Governor → University" = "red",
+        "Lag Governor → Health" = "blue",
+        "Lag Health → University" = "green"
       )
     ) +
-    labs(y = "Similarity Score", title = state)
+    labs(y = "Similarity Score", title = state) +
+    scale_y_continuous(limits = c(0,1))
 }
 
 
