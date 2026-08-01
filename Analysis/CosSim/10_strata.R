@@ -8,7 +8,7 @@ library(patchwork)
 setwd("~/Library/CloudStorage/Box-Box/Covid Policies/Analysis")
 
 purple_state <- c("VA", "PA", "MN", "MI", "MA")
-red_state <- c("TX", "GA")
+red_state <- c("TX", "GA", "FL")
 blue_state <- c("CA", "CO", "IL", "NY")
 
 data <- read_csv("Testing/Results/07_cossim_data_filtered.csv") %>%
@@ -47,7 +47,7 @@ make_base_plot <- function(strata) {
     scale_y_continuous(limits = c(0,1))
 }
 
-plot_directory <- "Testing/Results/Strata_Plots"
+plot_directory <- "Testing/Results/FilteredDataPlots/Strata_Plots"
 
 dir.create(
   plot_directory,
@@ -63,7 +63,7 @@ walk(strata, function(strata) {
   ggsave(
     filename = file.path(
       plot_directory,
-      paste0("cossim", strata, ".png")
+      paste0("NoLag/cossim", strata, ".png")
     ),
     plot = strata_plot,
     width = 10,
@@ -72,3 +72,51 @@ walk(strata, function(strata) {
     dpi = 300
   )
 })
+
+
+make_lag_plot <- function(strata) {
+  strata_df <- data %>%
+    filter(.data$strata == .env$strata)
+  
+  ggplot(strata_df) +
+    geom_line(aes(x = Date, y = Glag1_U, color = "Lag Gov > Uni")) +
+    geom_line(aes(x = Date, y = Glag1_H, color = "Lag Gov > Health")) +
+    geom_line(aes(x = Date, y = Hlag1_U, color = "Lag Health > Uni")) +
+    theme_bw() +
+    scale_color_manual(
+      name = "Series",
+      values = c(
+        "Lag Gov > Uni" = "red",
+        "Lag Gov > Health" = "blue",
+        "Lag Health > Uni" = "green"
+      )
+    ) +
+    labs(y = "Similarity Score", title = str_to_title(paste0(strata, " states")
+    )
+    ) +
+    scale_y_continuous(limits = c(0,1))
+}
+
+walk(strata, function(strata) {
+  strata_plot <- make_lag_plot(strata)
+  
+  ggsave(
+    filename = file.path(
+      plot_directory,
+      paste0("LagPlots/cossim", strata, ".png")
+    ),
+    plot = strata_plot,
+    width = 10,
+    height = 6,
+    units = "in",
+    dpi = 300
+  )
+})
+
+r <- make_lag_plot("red")
+b <- make_lag_plot("blue")
+p <- make_lag_plot("purple")
+
+b / p / r
+
+(b + p + r) + plot_layout(guides = "collect")

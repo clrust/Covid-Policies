@@ -78,7 +78,7 @@ make_base_plot <- function(state) {
     scale_y_continuous(limits = c(0,1))
 }
 
-plot_directory <- "Testing/Results/State_Plots"
+plot_directory <- "Testing/Results/FilteredDataPlots/State_Plots"
 
 dir.create(
   plot_directory,
@@ -94,7 +94,7 @@ walk(state_abvs, function(state) {
   ggsave(
     filename = file.path(
       plot_directory,
-      paste0("cossim", state, ".png")
+      paste0("NoLag/cossim", state, ".png")
     ),
     plot = state_plot,
     width = 10,
@@ -110,9 +110,9 @@ make_lag_plot <- function(state) {
     filter(.data$State == .env$state)
   
   ggplot(state_df) +
-    geom_line(aes(x = Date, y = H_Ulag1, color = "Lag Health → University")) +
     geom_line(aes(x = Date, y = Glag1_U, color = "Lag Governor → University")) +
     geom_line(aes(x = Date, y = Glag1_H, color = "Lag Governor → Health")) +
+    geom_line(aes(x = Date, y = H_Ulag1, color = "Lag Health → University")) +
     theme_bw() +
     scale_color_manual(
       name = "Series",
@@ -133,7 +133,7 @@ walk(state_abvs, function(state) {
   ggsave(
     filename = file.path(
       plot_directory,
-      paste0("cossim_lag", state, ".png")
+      paste0("LagPlots/cossim_lag", state, ".png")
     ),
     plot = state_plot,
     width = 10,
