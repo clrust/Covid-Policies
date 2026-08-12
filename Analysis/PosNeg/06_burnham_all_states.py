@@ -12,14 +12,15 @@ import numpy as np
 LABELS = ["economic relief", "reopening", "jobs", "housing", "vaccines",
           "testing", "positive cases", "healthcare professionals", 
           "healthcare infrastructure", "other", "research", "food"]
-MULTI_LABEL = True
+MULTI_LABEL = False
 CHARACTER_NUMBER = 100 #number of characters to slice from each press release
 WORKING_DIRECTORY = "/Users/connorrust/Library/CloudStorage/Box-Box/Covid Policies/"
 INPUT_DATA = "Data/05_combine_all_states.csv"
-OUTPUT_PATH = "Analysis/Testing/Results/06_burnham_posneg_all_states.csv"
+OUTPUT_PATH = "Analysis/Testing/Results/06_burnham_posneg_all_states_sample.csv"
 #####################################
 os.chdir(WORKING_DIRECTORY)
-data = pd.read_csv(INPUT_DATA)
+# data = pd.read_csv(INPUT_DATA)
+data = pd.read_csv(INPUT_DATA).sample(frac=0.1, random_state=42)
 
 # defining normalization function
 def normalize(matrix, axis=-1):
@@ -74,23 +75,27 @@ for edct, ddct in zip(entailment, disentailment):
 
 df = pd.DataFrame(clean_output)
 
+#---------For normalizing when multi label is set to True
+if MULTI_LABEL:
+# # separating out only positive and negative scores into separate dfs
+    ent_df = df.filter(like = "ent")
+    dis_df = df.filter(like = "dis")
+    
+    # copies to normalize
+    ent_df2 = ent_df.copy(deep=False) 
+    dis_df2 = dis_df.copy(deep=False) 
 
-# separating out only positive and negative scores into separate dfs
-ent_df = df.filter(like = "ent")
-dis_df = df.filter(like = "dis")
- 
-# copies to normalize
-ent_df2 = ent_df.copy(deep=False) 
-dis_df2 = dis_df.copy(deep=False) 
+    # L1 Normalizing each row
+    ent_df2.loc[:,ent_df2.columns.str.contains("ent")] = normalize(ent_df.values, axis=1)
+    dis_df2.loc[:,dis_df2.columns.str.contains("dis")] = normalize(dis_df.values, axis=1)
 
-# L1 Normalizing each row
-ent_df2.loc[:,ent_df2.columns.str.contains("ent")] = normalize(ent_df.values, axis=1)
-dis_df2.loc[:,dis_df2.columns.str.contains("dis")] = normalize(dis_df.values, axis=1)
+    # combining probabilities with the original data
+    output = pd.concat([data, ent_df2, dis_df2], axis=1)
+    # writing to csv
+    output.to_csv(OUTPUT_PATH)
 
-# combining probabilities with the original data
-output = pd.concat([data, ent_df2, dis_df2], axis=1)
+elif MULTI_LABEL == False:
+    df.to_csv(OUTPUT_PATH)
 
-# writing to csv
-output.to_csv(OUTPUT_PATH)
 
 

@@ -3,6 +3,7 @@
 # combining all states into one tibble, taking a random sample of institution;
 # The purpose of this is to allow me to have a sample that is small enough to run on my local device, 
 # which I can use to write all the necessary code
+
 library(tidyverse)
 
 data_path <- "~/Library/CloudStorage/Box-Box/Covid Policies/Data"
@@ -29,7 +30,7 @@ setwd(data_path)
 CA_Health.t <- read_csv("CA_Health.csv")
 
 CA_University.t <- read_csv("CA_University.csv")
-CA.t <- rbind(CA_Gov.t, CA_Health.t) %>%
+CA.t <- rbind(CA_Gov.t, CA_Health.t, CA_University.t) %>%
   mutate(Date = date(Date))
 
 # CO
@@ -43,9 +44,11 @@ setwd(rescraped_path)
 FL_Gov.t <- read_csv("FL_Gov.csv") 
 FL_Health.t <- read_csv("FL_Health_r2.csv") %>%
   select(-c(non_local_flag, Filename))
+setwd(data_path)
 
-# FL University here
-FL.t <- rbind(FL_Gov.t, FL_Health.t)
+FL_University.t <- read_csv("FL_University.csv") # FL University not rescraped
+
+FL.t <- rbind(FL_Gov.t, FL_Health.t, FL_University.t)
 
 # GA
 setwd(data_path)
@@ -87,7 +90,7 @@ MN_University.t <- read_csv("MN_University.csv")
 MN.t <- rbind(MN_Gov.t, MN_Health.t, MN_University.t)
 
 # NC
-# NC Gov here
+# NC Gov here (not completely scraped because of wayback machine issues)
 NC_Health.t <- read_csv("NC_Health.csv")
 NC_University.t <- read_csv("NC_University.csv")
 NC.t <- rbind(NC_Health.t, NC_University.t)
@@ -97,10 +100,10 @@ setwd(rescraped_path)
 NY_Gov.t <- read_csv("NY_Gov.csv")
 NY_University.t <- read_csv("NY_University_r2.csv") %>%
   select(-File)
-setwd(data_path)
-NY_Health.t <- read_csv("NY_Health.csv") %>%
-  mutate(Date = lubridate::mdy(Date))
+NY_Health.t <- read_csv("NY_Health.csv") 
 NY.t <- rbind(NY_Gov.t, NY_Health.t, NY_University.t)
+
+setwd(data_path)
 
 # OH
 OH_Gov.t <- read_csv("OH_Gov.csv")
@@ -131,8 +134,13 @@ VA.t <- rbind(VA_Gov.t,VA_Health.t, VA_University.t)
 
 # WI
 
+#wait so why do we not have Ohio here?
 All.t <- rbind(CA.t, CO.t, FL.t, GA.t, IL.t, MA.t, MI.t, MN.t, NC.t, NY.t, PA.t, TX.t, VA.t)
-# All.t %>% write_csv("All.csv")
+All.t %>% write_csv("All.csv")
+
+All.t_not_na <- All.t %>%
+  drop_na()
+All.t_not_na %>% write_csv("05_combine_all_states.csv")
 
 All.t_sample <- All.t %>%
   drop_na() %>%

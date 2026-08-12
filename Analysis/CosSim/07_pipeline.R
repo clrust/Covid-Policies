@@ -53,6 +53,12 @@ all_states_complete <- data2 %>%
     to   = as.Date("2022-12-31"),
     by   = "day"
   )) %>%
+  # adding flag to track whether a agency-day was filled
+  mutate(no_release_flag =  if_else(
+    map_lgl(embedding, is.null),
+    "no_release",
+    "release"
+  )) %>%
   arrange(Date) %>%
   fill(everything(), .direction = "down") %>%
   drop_na() %>% 
@@ -65,30 +71,30 @@ all_states_complete <- data2 %>%
   pivot_wider(
     id_cols = c(State, Date),
     names_from = Agency, 
-    values_from = embedding) %>%
-  drop_na() %>% # Florida has no University
+    values_from = c(embedding, no_release_flag)) %>%
+  drop_na() %>% 
   # grouping by state so that lag gets the previous days embeddings, if they exist, within the state
   group_by(State) %>% 
   arrange(Date, .by_group = TRUE) %>%
   # adding 1 day lag for comparison between agencies across days
-  mutate(lag1_Governor = lag(Governor),
-         lag1_Health = lag(Health),
-         lag1_University = lag(University)) %>%
+  mutate(lag1_Governor = lag(embedding_Governor),
+         lag1_Health = lag(embedding_Health),
+         lag1_University = lag(embedding_University)) %>%
   ungroup() %>%
   # calculating cosine similarity scores
-  mutate(GU = map2_dbl(Governor, University, safe_dot),
-         GH = map2_dbl(Governor, Health, safe_dot),
-         HU = map2_dbl(Health, University, safe_dot)) %>%
+  mutate(GU = map2_dbl(embedding_Governor, embedding_University, safe_dot),
+         GH = map2_dbl(embedding_Governor, embedding_Health, safe_dot),
+         HU = map2_dbl(embedding_Health, embedding_University, safe_dot)) %>%
   # cosine similarity scores for lagged agencies
-  mutate(G_Ulag1 = map2_dbl(Governor, lag1_University, safe_dot),
-         G_Hlag1 = map2_dbl(Governor, lag1_Health, safe_dot),
-         H_Ulag1 = map2_dbl(Health, lag1_University, safe_dot),
-         Glag1_U = map2_dbl(lag1_Governor, University, safe_dot),
-         Glag1_H = map2_dbl(lag1_Governor, Health, safe_dot),
-         Hlag1_U = map2_dbl(lag1_Health, University, safe_dot))
+  mutate(G_Ulag1 = map2_dbl(embedding_Governor, lag1_University, safe_dot),
+         G_Hlag1 = map2_dbl(embedding_Governor, lag1_Health, safe_dot),
+         H_Ulag1 = map2_dbl(embedding_Health, lag1_University, safe_dot),
+         Glag1_U = map2_dbl(lag1_Governor, embedding_University, safe_dot),
+         Glag1_H = map2_dbl(lag1_Governor, embedding_Health, safe_dot),
+         Hlag1_U = map2_dbl(lag1_Health, embedding_University, safe_dot))
 
 cossim_data <- all_states_complete %>%
-  select(-c(Governor, Health, University, starts_with("lag1")))
+  select(-c(embedding_Governor, embedding_Health, embedding_University, starts_with("lag1")))
 
 write_csv(cossim_data, "~/Library/CloudStorage/Box-Box/Covid Policies/Analysis/Testing/Results/07_cossim_data_filtere.csv")
 

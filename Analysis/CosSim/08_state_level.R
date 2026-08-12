@@ -9,6 +9,31 @@ setwd("~/Library/CloudStorage/Box-Box/Covid Policies/Analysis")
 
 cossim_data <- read_csv("Testing/Results/07_cossim_data_filtered.csv")
 
+state_uni_dates <- read_csv(
+  path.expand("~/covidpolicies/Analysis/state_uni_dates.csv"),
+  col_types = cols(.default = col_character())
+) %>%
+  rename(
+    closure = `State University System Closure Announced`,
+    reopening = `State University System Reopen`,
+    vaccine_eligibility = full_vax_eligibility
+  ) %>%
+  pivot_longer(
+    cols = c(closure, reopening, vaccine_eligibility),
+    names_to = "event",
+    values_to = "date"
+  ) %>%
+  mutate(
+    date = mdy(date),
+    event = recode(
+      event,
+      closure = "University closure announced",
+      reopening = "University system reopened",
+      vaccine_eligibility = "Full vaccine eligibility"
+    )
+  ) %>%
+  filter(!is.na(date))
+
 make_base_plot <- function(state) {
   state_df <- cossim_data %>%
     filter(.data$State == .env$state)
@@ -104,15 +129,25 @@ walk(state_abvs, function(state) {
   )
 })
 
+
 #-------lag plots
-make_lag_plot <- function(state) {
+make_lag_plot <- function(state, events = state_uni_dates) {
   state_df <- cossim_data %>%
+    filter(.data$State == .env$state)
+
+  state_events <- events %>%
     filter(.data$State == .env$state)
   
   ggplot(state_df) +
     geom_line(aes(x = Date, y = Glag1_U, color = "Lag Governor → University")) +
     geom_line(aes(x = Date, y = Glag1_H, color = "Lag Governor → Health")) +
     geom_line(aes(x = Date, y = H_Ulag1, color = "Lag Health → University")) +
+    geom_vline(
+      data = state_events,
+      aes(xintercept = date, linetype = event),
+      color = "grey30",
+      linewidth = 0.85
+    ) +
     theme_bw() +
     scale_color_manual(
       name = "Series",
@@ -121,6 +156,27 @@ make_lag_plot <- function(state) {
         "Lag Governor → Health" = "blue",
         "Lag Health → University" = "green"
       )
+    ) +
+    scale_linetype_manual(
+      name = "State events",
+      values = c(
+        "University closure announced" = "longdash",
+        "University system reopened" = "dotdash",
+        "Full vaccine eligibility" = "dotted"
+      )
+    ) +
+    guides(
+      color = guide_legend(nrow = 1, byrow = TRUE),
+      linetype = guide_legend(
+        nrow = 1,
+        byrow = TRUE,
+        override.aes = list(linewidth = 1.2)
+      )
+    ) +
+    theme(
+      legend.position = "bottom",
+      legend.box = "vertical",
+      legend.key.width = grid::unit(1.8, "cm")
     ) +
     labs(y = "Similarity Score", title = state) +
     scale_y_continuous(limits = c(0,1))
@@ -133,7 +189,7 @@ walk(state_abvs, function(state) {
   ggsave(
     filename = file.path(
       plot_directory,
-      paste0("LagPlots/cossim_lag", state, ".png")
+      paste0("Lag/cossim_lag", state, ".pdf")
     ),
     plot = state_plot,
     width = 10,
@@ -142,5 +198,3 @@ walk(state_abvs, function(state) {
     dpi = 300
   )
 })
-
-

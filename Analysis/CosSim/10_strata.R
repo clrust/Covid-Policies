@@ -4,6 +4,7 @@
 
 library(tidyverse)
 library(patchwork)
+library(modelsummary)
 
 setwd("~/Library/CloudStorage/Box-Box/Covid Policies/Analysis")
 
@@ -29,16 +30,16 @@ make_base_plot <- function(strata) {
     filter(.data$strata == .env$strata)
   
   ggplot(strata_df) +
-    geom_line(aes(x = Date, y = GU, color = "Governor → University")) +
-    geom_line(aes(x = Date, y = GH, color = "Governor → Health")) +
-    geom_line(aes(x = Date, y = HU, color = "Health → University")) +
+    geom_line(aes(x = Date, y = GU, color = "Gov | Uni")) +
+    geom_line(aes(x = Date, y = GH, color = "Gov | Health")) +
+    geom_line(aes(x = Date, y = HU, color = "Health | Uni")) +
     theme_bw() +
     scale_color_manual(
       name = "Series",
       values = c(
-        "Governor → University" = "red",
-        "Governor → Health" = "blue",
-        "Health → University" = "green"
+        "Gov | Uni" = "red",
+        "Gov | Health" = "blue",
+        "Health | Uni" = "green"
       )
     ) +
     labs(y = "Similarity Score", title = str_to_title(paste0(strata, " states")
@@ -79,16 +80,16 @@ make_lag_plot <- function(strata) {
     filter(.data$strata == .env$strata)
   
   ggplot(strata_df) +
-    geom_line(aes(x = Date, y = Glag1_U, color = "Lag Gov > Uni")) +
-    geom_line(aes(x = Date, y = Glag1_H, color = "Lag Gov > Health")) +
-    geom_line(aes(x = Date, y = Hlag1_U, color = "Lag Health > Uni")) +
+    geom_line(aes(x = Date, y = Glag1_U, color = "Lag Gov → Uni")) +
+    geom_line(aes(x = Date, y = Glag1_H, color = "Lag Gov → Health")) +
+    geom_line(aes(x = Date, y = Hlag1_U, color = "Lag Health → Uni")) +
     theme_bw() +
     scale_color_manual(
       name = "Series",
       values = c(
-        "Lag Gov > Uni" = "red",
-        "Lag Gov > Health" = "blue",
-        "Lag Health > Uni" = "green"
+        "Lag Gov → Uni" = "red",
+        "Lag Gov → Health" = "blue",
+        "Lag Health → Uni" = "green"
       )
     ) +
     labs(y = "Similarity Score", title = str_to_title(paste0(strata, " states")
@@ -113,10 +114,31 @@ walk(strata, function(strata) {
   )
 })
 
+
+walk(strata, function(strata) {
+  nl_strata_plot <- make_base_plot(strata)
+  l_strata_plot <- make_lag_plot(strata)
+  strata_plot <- nl_strata_plot + l_strata_plot
+  
+  ggsave(
+    filename = file.path(
+      plot_directory,
+      paste0("ComboPlots/cossim", strata, ".png")
+    ),
+    plot = strata_plot,
+    width = 10,
+    height = 6,
+    units = "in",
+    dpi = 300
+  )
+})
 r <- make_lag_plot("red")
+r1 <- make_base_plot("red")
 b <- make_lag_plot("blue")
 p <- make_lag_plot("purple")
 
+s
+r + r1
 b / p / r
 
 (b + p + r) + plot_layout(guides = "collect")

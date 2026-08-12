@@ -12,7 +12,7 @@ import numpy as np
 LABELS = ["economic relief", "reopening", "jobs", "housing", "vaccines",
           "testing", "positive cases", "healthcare professionals", 
           "healthcare infrastructure", "other", "research", "food"]
-MULTI_LABEL = True
+MULTI_LABEL = False
 CHARACTER_NUMBER = 100 #number of characers to slice from each press release
 WORKING_DIRECTORY = "/Users/connorrust/Library/CloudStorage/Box-Box/Covid Policies/"
 INPUT_DATA = "Data/05_combine_all_states_sample.csv"
