@@ -8,23 +8,84 @@ library(modelsummary)
 
 setwd("~/Library/CloudStorage/Box-Box/Covid Policies/Analysis")
 
-purple_state <- c("VA", "PA", "MN", "MI", "MA")
-red_state <- c("TX", "GA", "FL")
-blue_state <- c("CA", "CO", "IL", "NY")
 
-data <- read_csv("Testing/Results/07_cossim_data_filtered.csv") %>%
-  mutate(strata = case_when(
-    State %in% purple_state ~ "purple",
-    State %in% red_state ~ "red",
-    State %in% blue_state ~ "blue",
-    .default = NA
-  )) %>%
-  group_by(Date, strata) %>%
+uni_data <- read_csv("Testing/Results/07_cossim_data_filtered.csv") %>%
+  filter(no_release_flag_University == "release") %>%
+  group_by(Date, party) %>%
+  summarise(
+    across(where(is.numeric), ~ mean(.x, na.rm = TRUE)),
+    .groups = "drop"
+  ) %>%
+  drop_na()
+
+health_data <- read_csv("Testing/Results/07_cossim_data_filtered.csv") %>%
+  filter(no_release_flag_Health == "release") %>%
+  group_by(Date, party) %>%
   summarise(
     across(where(is.numeric), ~ mean(.x, na.rm = TRUE)),
     .groups = "drop"
   )
+  
 
+gov_data <- read_csv("Testing/Results/07_cossim_data_filtered.csv") %>%
+  filter(no_release_flag_Governor == "release") %>%
+  group_by(Date, party) %>%
+  summarise(
+    across(where(is.numeric), ~ mean(.x, na.rm = TRUE)),
+    .groups = "drop"
+  )
+  
+
+make_uni_plot <- function(strata, strata_val) {
+  
+  uni_data %>% filter(.data[[strata]] == strata_val)%>%
+  ggplot() +
+    geom_line(aes(x = Date, y = Glag1_U, color = "Lag Gov → Uni")) +
+    geom_line(aes(x = Date, y = Hlag1_U, color = "Lag Health → Uni")) +
+    theme_bw() +
+    scale_color_manual(
+      name = "Series",
+      values = c(
+        "Lag Gov → Uni" = "darkgreen",
+        "Lag Health → Uni" = "darkgrey"
+      )
+    )  +
+    labs(y = "Similarity Score", title = str_to_title(paste0(strata_val, " states")
+    )
+    ) +
+    scale_y_continuous(limits = c(0,1))
+}
+
+make_hg_plot <- function(strata, strata_val) {
+  strata_hd <- health_data %>% filter(.data[[strata]] == strata_val)
+  strata_gd <- gov_data %>% filter(.data[[strata]] == strata_val)
+  ggplot() +
+    geom_line(data = strata_hd, aes(x = Date, y = Glag1_H, color = "Lag Gov → Health")) +
+    geom_line(data = strata_gd, aes(x = Date, y = G_Hlag1, color = "Lag Health → Gov")) +
+    theme_bw() +
+    scale_color_manual(
+      name = "Series",
+      values = c(
+        "Lag Gov → Health" = "darkgreen",
+        "Lag Health → Gov" = "darkgrey"
+      )
+    )  +
+    labs(y = "Similarity Score", title = str_to_title(paste0(strata_val, " states")
+    )
+    ) +
+    scale_y_continuous(limits = c(0,1))
+}
+
+
+
+
+
+
+
+
+
+
+#-----old plotting functions
 make_base_plot <- function(strata) {
   strata_df <- data %>%
     filter(.data$strata == .env$strata)
