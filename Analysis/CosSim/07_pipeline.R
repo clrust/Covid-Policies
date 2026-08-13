@@ -93,10 +93,39 @@ all_states_complete <- data2 %>%
          Glag1_H = map2_dbl(lag1_Governor, embedding_Health, safe_dot),
          Hlag1_U = map2_dbl(lag1_Health, embedding_University, safe_dot))
 
-cossim_data <- all_states_complete %>%
-  select(-c(embedding_Governor, embedding_Health, embedding_University, starts_with("lag1")))
+#----adding strata
 
-write_csv(cossim_data, "~/Library/CloudStorage/Box-Box/Covid Policies/Analysis/Testing/Results/07_cossim_data_filtere.csv")
+purple_state <- c("VA", "PA", "MN", "MI", "MA")
+red_state <- c("TX", "GA", "FL")
+blue_state <- c("CA", "CO", "IL", "NY")
+
+# reading in density data 
+density <- read_xlsx("Testing/ExternalData/population-density-data-table.xlsx", skip = 4) %>%
+  clean_names() %>%
+  select(x1, resident_population_2020_census, population_density_2020_census, density_rank_2020_census)
+
+colnames(density) <- c("state", "population", "density", "density_rank")
+
+density <- density %>%
+  mutate(
+    state = state.abb[match(state, state.name)]
+  )
+
+# adding in political ideology and mergine on density data
+cossim_data <- all_states_complete %>%
+  select(-c(embedding_Governor, embedding_Health, embedding_University, starts_with("lag1"))) %>%
+  mutate(party = case_when(
+    State %in% purple_state ~ "purple",
+    State %in% red_state ~ "red",
+    State %in% blue_state ~ "blue",
+    .default = NA
+  )) %>%
+  left_join(density, join_by(State == state))
+
+
+
+
+write_csv(cossim_data, "~/Library/CloudStorage/Box-Box/Covid Policies/Analysis/Testing/Results/07_cossim_data_filtered.csv")
 
 
 
