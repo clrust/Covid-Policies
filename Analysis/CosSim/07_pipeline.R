@@ -120,7 +120,9 @@ cossim_data <- all_states_complete %>%
     State %in% blue_state ~ "blue",
     .default = NA
   )) %>%
-  left_join(density, join_by(State == state))
+  left_join(density, join_by(State == state)) %>%
+  mutate(density_cat = if_else(density > 108.3, "high", "low"))
+
 
 
 
